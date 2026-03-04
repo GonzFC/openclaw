@@ -851,6 +851,17 @@ export const registerTelegramHandlers = ({
       senderLabel = senderLabel || "unknown";
 
       const messageId = msg.message_id;
+
+      // React with ✏️ to acknowledge the edit — non-blocking, silent on failure.
+      void bot.api
+        .setMessageReaction(chatId, messageId, [{ type: "emoji", emoji: "✍️" }], {
+          is_big: false,
+        })
+        .catch(() => {
+          // Reaction is best-effort — don't let failure block event processing.
+          logVerbose(`telegram: could not set ✍️ reaction on edited msg ${messageId}`);
+        });
+
       const eventText = `[Edited message] ${senderLabel} edited message ${messageId}. New content: ${text}`;
 
       enqueueSystemEvent(eventText, {
